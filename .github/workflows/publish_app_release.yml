@@ -28,7 +28,7 @@ jobs:
       - name: Flutter action
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.0" # 这里修正为当前存在的稳定版
+          flutter-version: "3.38.x" # 这里修正为当前存在的稳定版
           cache: true
 
       # 4. 安装依赖
