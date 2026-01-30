@@ -41,14 +41,32 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
-            isV1SigningEnabled = true
-            isV2SigningEnabled = true
+            // 先把每个属性读出来，作为可空 String
+            val store = keystoreProperties["storeFile"] as? String
+            val storePass = keystoreProperties["storePassword"] as? String
+            val keyAliasProp = keystoreProperties["keyAlias"] as? String
+            val keyPass = keystoreProperties["keyPassword"] as? String
+    
+            // 只有当关键信息都不为空时才配置自定义签名
+            if (!store.isNullOrEmpty() && !storePass.isNullOrEmpty() && !keyAliasProp.isNullOrEmpty() && !keyPass.isNullOrEmpty()) {
+                this.storeFile = file(store)
+                this.storePassword = storePass
+                this.keyAlias = keyAliasProp
+                this.keyPassword = keyPass
+                isV1SigningEnabled = true
+                isV2SigningEnabled = true
+            } else {
+                // 否则：使用系统的 debug keystore（保证 CI 和本地都能正常构建）
+                this.storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
+                this.storePassword = "android"
+                this.keyAlias = "androiddebugkey"
+                this.keyPassword = "android"
+                isV1SigningEnabled = true
+                isV2SigningEnabled = true
+            }
         }
     }
+
 
     buildTypes {
         release {
