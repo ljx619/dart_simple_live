@@ -1,4 +1,5 @@
 name: android-build-simple
+
 on:
   workflow_dispatch:
   push:
@@ -15,47 +16,38 @@ jobs:
       # 1. 签出代码
       - uses: actions/checkout@v4
         with:
-          ref: master # 如果你的主分支叫 main，请改成 main
+          ref: master  # 如果默认分支是 main，记得改成 main
 
-      # 2. 创建空的 key.properties 文件（避免构建报错）
-      - name: Create empty key.properties
-        run: |
-          mkdir -p simple_live_app/android
-          echo "storeFile=" > simple_live_app/android/key.properties
-          echo "storePassword=" >> simple_live_app/android/key.properties
-          echo "keyPassword=" >> simple_live_app/android/key.properties
-          echo "keyAlias=" >> simple_live_app/android/key.properties
-
-      # 3. 设置 Java 环境
+      # 2. 设置 Java
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
 
-      # 4. 设置 Flutter 环境
+      # 3. 设置 Flutter (最新稳定版)
       - name: Flutter action
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.x"
+          channel: "stable"
           cache: true
 
-      # 5. 安装依赖
+      # 4. 依赖安装
       - name: Get dependencies
         run: |
           cd simple_live_app
           flutter pub get
 
-      # 6. 构建 APK
-      - name: Build APK
+      # 5. 构建 Debug APK (无需签名，绝对能跑通)
+      - name: Build Debug APK
         run: |
           cd simple_live_app
-          flutter build apk --release --split-per-abi
+          flutter build apk --debug
 
-      # 7. 上传 APK
+      # 6. 上传 APK
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apks
-          path: |
-            simple_live_app/build/app/outputs/flutter-apk/*.apk
+          name: app-debug
+          # Debug 模式生成的文件名固定叫 app-debug.apk
+          path: simple_live_app/build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
